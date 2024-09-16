@@ -1,0 +1,41 @@
+#!/usr/bin/expect
+
+set username "dmp"
+set password "MEmfNSM@6/Ft)ett"
+set remote_directory [lindex $argv 0]
+set local_directory [lindex $argv 1]
+set desired_string [lindex $argv 2]
+
+spawn sftp dmp@sftp.clarityservices.com
+
+
+expect "password:"
+send "$password\r"
+
+# Expect the sftp prompt and change to the remote directory
+expect "sftp>"
+send "cd $remote_directory\r"
+
+# Expect the sftp prompt and list the files in the remote directory
+expect "sftp>"
+send "ls\r"
+
+# Expect the file listing and loop through each file
+expect -re {(\r\n|\n|\r)SFTP> $}
+set fileListing $expect_out(buffer)
+set filePattern ".*$desired_string.*"
+set fileRegex -nocase $filePattern
+set files [regexp -inline -all -lineanchor -- $fileRegex $fileListing]
+
+foreach file $files {
+  # Expect the sftp prompt and download the file
+  expect "sftp>"
+  send "get \"$file\" \"$local_directory\"\r"
+}
+
+# Expect the sftp prompt and close the sftp session
+expect "sftp>"
+send "exit\r"
+
+# Expect the script to finish
+expect eof

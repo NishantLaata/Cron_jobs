@@ -1,0 +1,26 @@
+#!/usr/bin/expect
+
+set username "dmp"
+set password "MEmfNSM@6/Ft)ett"
+set local_file [lindex $argv 0]
+set portfolio_dir [lindex $argv 1]
+
+
+spawn sftp dmp@sftp.clarityservices.com
+sleep 1
+
+expect {
+    "The authenticity of host '*'" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "sftp>" {
+        send "put $local_file $portfolio_dir\r"
+        expect "sftp>"
+        send "quit\r"
+    }
+}
